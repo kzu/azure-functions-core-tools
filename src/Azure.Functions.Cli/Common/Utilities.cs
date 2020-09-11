@@ -242,7 +242,9 @@ namespace Azure.Functions.Cli
         /// <returns></returns>
         internal static bool DefaultLoggingFilter(string category, LogLevel actualLevel, LogLevel userLogMinLevel, LogLevel systemLogMinLevel)
         {
-            if (LogCategories.IsFunctionUserCategory(category) || category.Equals(WorkerConstants.FunctionConsoleLogCategoryName, StringComparison.OrdinalIgnoreCase))
+            if (LogCategories.IsFunctionUserCategory(category)
+                || LogCategories.IsFunctionCategory(category)
+                || category.Equals(WorkerConstants.FunctionConsoleLogCategoryName, StringComparison.OrdinalIgnoreCase))
             {
                 return actualLevel >= userLogMinLevel;
             }

@@ -55,12 +55,7 @@ namespace Azure.Functions.Cli.Diagnostics
         {
             foreach (var line in GetMessageString(logLevel, formattedMessage, exception))
             {
-                var outputline = $"{line}";
-                if (_loggingFilterHelper.VerboseLogging)
-                {
-                    outputline = $"[{DateTime.UtcNow}] {outputline}";
-                }
-                ColoredConsole.WriteLine($"{outputline}");
+                ColoredConsole.WriteLine($"[{DateTime.UtcNow}] {line}");
             }
         }
 
