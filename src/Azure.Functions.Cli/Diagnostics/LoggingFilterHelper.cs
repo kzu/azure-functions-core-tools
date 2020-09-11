@@ -11,7 +11,6 @@ namespace Azure.Functions.Cli
 {
     public class LoggingFilterHelper
     {
-        private const string DefaultLogLevelKey = "default";
         private IConfigurationRoot _hostJsonConfig = null;
 
         // CI EnvironmentSettings
@@ -34,7 +33,7 @@ namespace Azure.Functions.Cli
             {
                 SystemLogDefaultLogLevel = LogLevel.Information;
             }
-            if (Utilities.LogLevelExists(hostJsonConfig, DefaultLogLevelKey, out LogLevel logLevel))
+            if (Utilities.LogLevelExists(hostJsonConfig, Utilities.LogLevelDefaultSection, out LogLevel logLevel))
             {
                 SystemLogDefaultLogLevel = logLevel;
                 UserLogDefaultLogLevel = logLevel;

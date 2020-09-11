@@ -1,6 +1,7 @@
 ﻿using Azure.Functions.Cli.Common;
 using Microsoft.Azure.WebJobs.Script;
 using Microsoft.Extensions.Logging;
+using System;
 using System.IO;
 using Xunit;
 
@@ -41,7 +42,7 @@ namespace Azure.Functions.Cli.Tests
             _hostJsonFilePath = Path.Combine(_hostOptions.ScriptPath, Constants.HostJsonFileName);
         }
 
-        [Theory(Skip = "https://github.com/Azure/azure-functions-core-tools/issues/2174")]
+        [Theory]
         [InlineData("{\"version\": \"2.0\",\"Logging\": {\"LogLevel\": {\"Default\": \"None\"}}}", LogLevel.None)]
         [InlineData("{\"version\": \"2.0\",\"logging\": {\"logLevel\": {\"Default\": \"NONE\"}}}", LogLevel.None)]
         [InlineData("{\"version\": \"2.0\",\"logging\": {\"logLevel\": {\"Default\": \"Debug\"}}}", LogLevel.Debug)]
@@ -52,7 +53,8 @@ namespace Azure.Functions.Cli.Tests
             {
                 FileSystemHelpers.WriteAllTextToFile(_hostJsonFilePath, hostJsonContent);
                 var configuration = Utilities.BuildHostJsonConfigutation(_hostOptions);
-                LogLevel actualLogLevel = Utilities.GetHostJsonDefaultLogLevel(configuration);
+                LogLevel actualLogLevel;
+                bool result = Utilities.LogLevelExists(configuration, Utilities.LogLevelDefaultSection, out actualLogLevel);
                 Assert.Equal(actualLogLevel, expectedLogLevel);
             }
             finally
@@ -61,7 +63,30 @@ namespace Azure.Functions.Cli.Tests
             }
         }
 
-        [Theory(Skip = "https://github.com/Azure/azure-functions-core-tools/issues/2174")]
+        [Theory]
+        [InlineData("{\"version\": \"2.0\",\"Logging\": {\"LogLevel\": {\"Default\": \"None\"}}}")]
+        [InlineData("{\"version\": \"2.0\",\"logging\": {\"logLevel\": {\"Default\": \"NONE\"}}}")]
+        [InlineData("{\"version\": \"2.0\",\"logging\": {\"logLevel\": {\"Default\": \"Debug\"}}}")]
+        [InlineData("{\"version\": \"2.0\"}")]
+        public void GetHostJsonDefaultLogLevel_EnvVarOverrides_Test(string hostJsonContent)
+        {
+            try
+            {
+                Environment.SetEnvironmentVariable("AzureFunctionsJobHost__logging__logLevel__Default", "Warning");
+                FileSystemHelpers.WriteAllTextToFile(_hostJsonFilePath, hostJsonContent);
+                var configuration = Utilities.BuildHostJsonConfigutation(_hostOptions);
+                LogLevel actualLogLevel;
+                bool result = Utilities.LogLevelExists(configuration, Utilities.LogLevelDefaultSection, out actualLogLevel);
+                Assert.Equal(LogLevel.Warning, actualLogLevel);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("AzureFunctionsJobHost__logging__logLevel__Default", "");
+                DeleteIfExists(_workerDir);
+            }
+        }
+
+        [Theory]
         [InlineData("{\"version\": \"2.0\",\"Logging\": {\"LogLevel\": {\"Host.General\": \"Debug\"}}}", "Host.General", true)]
         [InlineData("{\"version\": \"2.0\",\"Logging\": {\"LogLevel\": {\"Host.Startup\": \"Debug\"}}}", "Host.General", false)]
         [InlineData("{\"version\": \"2.0\"}", "Function.HttpFunction", false)]
@@ -72,7 +97,13 @@ namespace Azure.Functions.Cli.Tests
                 FileSystemHelpers.WriteAllTextToFile(_hostJsonFilePath, hostJsonContent);
 
                 var configuration = Utilities.BuildHostJsonConfigutation(_hostOptions);
-                Assert.Equal(expected, Utilities.LogLevelExists(configuration, category, out LogLevel logLevel));
+                LogLevel logLevel;
+                bool result = Utilities.LogLevelExists(configuration, category, out logLevel);
+                Assert.Equal(expected, result);
+                if (result)
+                {
+                    Assert.Equal(LogLevel.Debug, logLevel);
+                }
             }
             finally
             {
