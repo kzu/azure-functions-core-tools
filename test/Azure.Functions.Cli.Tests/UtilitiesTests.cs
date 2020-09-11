@@ -90,6 +90,8 @@ namespace Azure.Functions.Cli.Tests
         [InlineData("{\"version\": \"2.0\",\"Logging\": {\"LogLevel\": {\"Host.General\": \"Debug\"}}}", "Host.General", true)]
         [InlineData("{\"version\": \"2.0\",\"Logging\": {\"LogLevel\": {\"Host.Startup\": \"Debug\"}}}", "Host.General", false)]
         [InlineData("{\"version\": \"2.0\"}", "Function.HttpFunction", false)]
+        [InlineData("{\"version\": \"2.0\",\"Logging\": {\"LogLevel\": {\"Function.HttpFunction\": \"Debug\"}}}", "Function.HttpFunction.User", true)]
+        [InlineData("{\"version\": \"2.0\",\"Logging\": {\"LogLevel\": {\"Function.HttpFunction\": \"Debug\"}}}", "Function.HTTPFunction.USER", true)]
         public void LogLevelExists_Test(string hostJsonContent, string category, bool expected)
         {
             try

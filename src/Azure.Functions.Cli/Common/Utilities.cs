@@ -182,25 +182,10 @@ namespace Azure.Functions.Cli
             return localPath;
         }
 
-        internal static LogLevel GetHostJsonDefaultLogLevel(IConfigurationRoot hostJsonConfig)
-        {
-            string defaultLogLevelKey = ConfigurationPath.Combine(ConfigurationSectionNames.JobHost, ConfigurationSectionNames.Logging, LogLevelSection, LogLevelDefaultSection);
-            try
-            {
-                if (Enum.TryParse(typeof(LogLevel), hostJsonConfig[defaultLogLevelKey].ToString(), true, out object outLevel))
-                {
-                    return (LogLevel)outLevel;
-                }
-            }
-            catch
-            {
-            }
-            // Default log level
-            return LogLevel.Information;
-        }
-
         internal static bool LogLevelExists(IConfigurationRoot hostJsonConfig, string category, out LogLevel outLogLevel)
         {
+            // Host creates user logger for function with Category: Function.{FunctionName}.User Remove ".User" to match the  category name to the funciton name
+            category = category.Replace(".User", "", StringComparison.OrdinalIgnoreCase);
             string categoryKey = ConfigurationPath.Combine(ConfigurationSectionNames.JobHost, ConfigurationSectionNames.Logging, LogLevelSection, category);
             try
             {
