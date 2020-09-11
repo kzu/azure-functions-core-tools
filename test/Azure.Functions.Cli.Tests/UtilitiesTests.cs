@@ -133,7 +133,7 @@ namespace Azure.Functions.Cli.Tests
 
         [Theory]
         [InlineData(LogLevel.None, false)]
-        [InlineData(LogLevel.Debug, true)]
+        [InlineData(LogLevel.Debug, false)]
         [InlineData(LogLevel.Information, true)]
         public void UserLoggingFilter_Test(LogLevel inputLogLevel, bool expected)
         {
