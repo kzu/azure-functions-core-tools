@@ -183,7 +183,7 @@ namespace Azure.Functions.Cli.Actions.HostActions
                 {
                     loggingBuilder.ClearProviders();
                     // This is needed to filter system logs only for known categories
-                    loggingBuilder.AddFilter<ColoredConsoleLoggerProvider>((category, level) => Utilities.SystemLoggingFilter(category, level, LogLevel.Trace)).AddProvider(new ColoredConsoleLoggerProvider(loggingFilterHelper));
+                    loggingBuilder.AddDefaultWebJobsFilters<ColoredConsoleLoggerProvider>(LogLevel.Trace).AddProvider(new ColoredConsoleLoggerProvider(loggingFilterHelper));
                 })
                 .ConfigureServices((context, services) => services.AddSingleton<IStartup>(new Startup(context, hostOptions, CorsOrigins, CorsCredentials, EnableAuth, loggingFilterHelper)))
                 .Build();

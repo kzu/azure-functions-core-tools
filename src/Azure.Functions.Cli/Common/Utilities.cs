@@ -24,13 +24,6 @@ namespace Azure.Functions.Cli
     {
         public const string LogLevelSection = "loglevel";
         public const string LogLevelDefaultSection = "Default";
-        internal static readonly string[] SystemCategoryPrefixes = new[]
-        {
-            "Microsoft.Azure.WebJobs.",
-            "Function.",
-            "Worker.",
-            "Host."
-        };
 
         internal static void PrintLogo()
         {
@@ -281,13 +274,14 @@ namespace Azure.Functions.Cli
 
         internal static bool IsSystemLogCategory(string category)
         {
-            return SystemCategoryPrefixes.Where(p => category.StartsWith(p)).Any();
+            return ScriptConstants.SystemLogCategoryPrefixes.Where(p => category.StartsWith(p)).Any();
         }
 
         internal static IConfigurationRoot BuildHostJsonConfigutation(ScriptApplicationHostOptions hostOptions)
         {
             IConfigurationBuilder builder = new ConfigurationBuilder();
             builder.Add(new HostJsonFileConfigurationSource(hostOptions, SystemEnvironment.Instance, loggerFactory: NullLoggerFactory.Instance, metricsLogger: new MetricsLogger()));
+            builder.Add(new ScriptEnvironmentVariablesConfigurationSource());
             var configuration = builder.Build();
             return configuration;
         }
