@@ -199,19 +199,21 @@ namespace Azure.Functions.Cli
             return LogLevel.Information;
         }
 
-        internal static bool LogLevelExists(IConfigurationRoot hostJsonConfig, string category)
+        internal static bool LogLevelExists(IConfigurationRoot hostJsonConfig, string category, out LogLevel outLogLevel)
         {
             string categoryKey = ConfigurationPath.Combine(ConfigurationSectionNames.JobHost, ConfigurationSectionNames.Logging, LogLevelSection, category);
             try
             {
                 if (Enum.TryParse(typeof(LogLevel), hostJsonConfig[categoryKey], true, out object outLevel))
                 {
+                    outLogLevel = (LogLevel)outLevel;
                     return true;
                 }
             }
             catch 
             { 
             }
+            outLogLevel = LogLevel.Information;
             return false;
         }
 
@@ -258,18 +260,27 @@ namespace Azure.Functions.Cli
         /// </summary>
         /// <param name="actualLevel"></param>
         /// <returns></returns>
-        internal static bool UserLoggingFilter(LogLevel actualLevel)
+        internal static bool UserLoggingFilter(LogLevel actualLevel, LogLevel minLogLevel)
         {
             if (actualLevel == LogLevel.None)
             {
                 return false;
             }
-            return actualLevel >= LogLevel.Trace;
+            return actualLevel >= minLogLevel;
         }
 
         internal static bool SystemLoggingFilter(string category, LogLevel actualLevel, LogLevel minLevel)
         {
             return actualLevel >= minLevel && IsSystemLogCategory(category);
+        }
+
+        internal static bool JobHostSystemLoggingFilter(string category, LogLevel actualLevel, LogLevel minLevel)
+        {
+            if(IsSystemLogCategory(category))
+            {
+                return true;
+            }
+            return actualLevel >= minLevel;
         }
 
         internal static bool IsSystemLogCategory(string category)

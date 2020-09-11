@@ -34,12 +34,10 @@ namespace Azure.Functions.Cli
             {
                 SystemLogDefaultLogLevel = LogLevel.Information;
             }
-            bool defaultLogLevelExists = Utilities.LogLevelExists(hostJsonConfig, DefaultLogLevelKey);
-            if (defaultLogLevelExists)
+            if (Utilities.LogLevelExists(hostJsonConfig, DefaultLogLevelKey, out LogLevel logLevel))
             {
-                DefaultLogLevel = Utilities.GetHostJsonDefaultLogLevel(hostJsonConfig);
-                SystemLogDefaultLogLevel = DefaultLogLevel;
-                UserLogDefaultLogLevel = DefaultLogLevel;
+                SystemLogDefaultLogLevel = logLevel;
+                UserLogDefaultLogLevel = logLevel;
             }
         }
 
@@ -65,16 +63,29 @@ namespace Azure.Functions.Cli
 
         internal void AddConsoleLoggingProvider(ILoggingBuilder loggingBuilder)
         {
-            // Filter is needed to force all the logs at jobhost level
-            loggingBuilder.AddFilter<ColoredConsoleLoggerProvider>((category, level) => true).AddProvider(new ColoredConsoleLoggerProvider(this));
+            // Filter is needed to force all the System Logs coming from jobhost level
+            loggingBuilder.AddFilter<ColoredConsoleLoggerProvider>((category, level) => Filter(category, level)).AddProvider(new ColoredConsoleLoggerProvider(this));
+        }
+
+        private bool Filter(string category, LogLevel actualLevel)
+        {
+            if (Utilities.IsSystemLogCategory(category))
+            {
+                return true;
+            }
+            if (_hostJsonConfig != null && Utilities.LogLevelExists(_hostJsonConfig, category, out LogLevel userLogLevel))
+            {
+                return actualLevel >= userLogLevel;
+            }
+            return actualLevel >= UserLogDefaultLogLevel;
         }
 
         internal bool IsEnabled(string category, LogLevel logLevel)
         {
-            if (_hostJsonConfig != null && Utilities.LogLevelExists(_hostJsonConfig, category))
+            if (_hostJsonConfig != null && Utilities.LogLevelExists(_hostJsonConfig, category, out LogLevel userLogLevel))
             {
                 // If category exists in `loglevel` section, ensure defaults do not apply.
-                return Utilities.UserLoggingFilter(logLevel);
+                return Utilities.UserLoggingFilter(logLevel, userLogLevel);
             }
             if (DefaultLogLevel == LogLevel.None)
             {

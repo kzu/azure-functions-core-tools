@@ -72,7 +72,7 @@ namespace Azure.Functions.Cli.Tests
                 FileSystemHelpers.WriteAllTextToFile(_hostJsonFilePath, hostJsonContent);
 
                 var configuration = Utilities.BuildHostJsonConfigutation(_hostOptions);
-                Assert.Equal(expected, Utilities.LogLevelExists(configuration, category));
+                Assert.Equal(expected, Utilities.LogLevelExists(configuration, category, out LogLevel logLevel));
             }
             finally
             {
@@ -104,7 +104,7 @@ namespace Azure.Functions.Cli.Tests
         [InlineData(LogLevel.Information, true)]
         public void UserLoggingFilter_Test(LogLevel inputLogLevel, bool expected)
         {
-            Assert.Equal(expected, Utilities.UserLoggingFilter(inputLogLevel));
+            Assert.Equal(expected, Utilities.UserLoggingFilter(inputLogLevel, LogLevel.Information));
         }
 
         [Theory]
